@@ -7,28 +7,19 @@
     Install WSL2.
 .Description
     Install WSL2.
-.Parameter pkgs
-    Define packages.
 .Example
     iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JuAw5'))
 #>
 
-[CmdletBinding()]
-param
-(
-    [string] $pkgs = (Get-AppxPackage).Name
-)
-
 #region Helper Functions
 function Write-ProgressHelper
 {
-	param (
-	    [int]$StepNumber,
-        [int]$StepsNumber,
-	    [string]$Message
-	)
-
-	Write-Progress -Activity 'Installing WSL2' -Status $Message -PercentComplete (($StepNumber / $StepsNumber) * 100)
+    param (
+        [int]$StepNumber,
+	[int]$StepsNumber,
+	[string]$Message
+    )
+    Write-Progress -Activity 'Installing WSL2' -Status $Message -PercentComplete (($StepNumber / $StepsNumber) * 100)
 }
 #endregion
 
