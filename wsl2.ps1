@@ -12,24 +12,24 @@
 #>
 
 #region Helper Functions
-function Write-ProgressHelper ()
+function Write-ProgressHelper
 {
     param (
         [int]$StepNumber,
         [int]$StepsNumber,
-	[string]$Message
+	    [string]$Message
     )
     Write-Progress -Activity 'Installing WSL2' -Status $Message -PercentComplete (($StepNumber / $StepsNumber) * 100)
 }
 #endregion
 
-function Resume ()
+function Resume
 {
     path = $MyInvocation.MyCommand.Path
     set-location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
     new-itemproperty . MyKey -propertytype String -value "Powershell $path"
 }
-function Test-WSL ()
+function Test-WSL
 {
     Write-Host("Checking for Windows Subsystem for Linux...")
     if ((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux).State -ne 'Enabled')
@@ -40,7 +40,7 @@ function Test-WSL ()
     }
     else { Write-Host(" ...Windows Subsystem for Linux already installed.") }
 }
-function Test-VMP ()
+function Test-VMP
 {
     Write-Host("Checking for Virtual Machine Platform...")
     if ((Get-WindowsOptionalFeature -Online -FeatureName VirtualMachinePlatform).State -ne 'Enabled')
@@ -51,7 +51,7 @@ function Test-VMP ()
     }
     else { Write-Host(" ...Virtual Machine Platform already installed.") }
 }
-function Update-Kernel ()
+function Update-Kernel
 {
     Write-Host(" ...Downloading WSL2 Kernel Update.")
     $kernelURI = 'https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi'
@@ -63,17 +63,17 @@ function Update-Kernel ()
     Write-Host(" ...Cleaning up Kernel Update installer.")
     Remove-Item -Path $kernelUpdate
 }
-function Get-Kernel-Updated ()
+function Get-Kernel-Updated
 {
     # Check for Kernel Update Package
     Write-Host("Checking for Windows Subsystem for Linux Update...")
-    $uninstall64 = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | ForEach-Object { Get-ItemProperty $_.PSPath } | Select-Object DisplayName, Publisher, DisplayVersion, InstallDate
+    $uninstall64 = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall" | %{ Get-ItemProperty $_.PSPath } | Select-Object DisplayName, Publisher, DisplayVersion, InstallDate
     if ($uninstall64.DisplayName -contains 'Windows Subsystem for Linux Update') { return $true } else { return $false }
 }
-function Get-WSLlist ()
+function Get-WSLlist
 {
     $wslinstalls = New-Object Collections.Generic.List[String]
-    $(wsl -l) | ForEach-Object { if ($_.Length -gt 1){ $wslinstalls.Add($_) } }
+    $(wsl -l) | %{ if ($_.Length -gt 1){ $wslinstalls.Add($_) } }
     $wslinstalls = $wslinstalls | Where-Object { $_ -ne 'Windows Subsystem for Linux Distributions:' }
     return $wslinstalls
 }
@@ -120,11 +120,11 @@ function Get-StoreDownloadLink ($distro)
     $newHtml.write($src)
     $ToDownload=$newHtml.getElementsByTagName("a") | Select-Object textContent, href
     $apxLinks = @()
-    $ToDownload | ForEach-Object { if ($_.textContent -match '.appxbundle') { $apxLinks = $_ } }
+    $ToDownload | %{ if ($_.textContent -match '.appxbundle') { $apxLinks = $_ } }
     $distro.URI = $apxLinks.href
     return $distro
 }
-function Test-Sideload ()
+function Test-Sideload
 {
     # Return $true if sideloading is enabled
     $keyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
@@ -134,7 +134,7 @@ function Test-Sideload ()
     function Test-RegProperty ($propertyname){
         if ($null -ne ($Key.GetValue($propertyname, $null))) {return $true} else {return $false}
     }
-    $sideloadKeys | ForEach-Object {
+    $sideloadKeys | %{
         if (!(Test-RegProperty ($_))) {$return = $false}
         else 
         {
@@ -143,7 +143,7 @@ function Test-Sideload ()
     }
     return $return
 }
-function Enable-Sideload ()
+function Enable-Sideload
 {
     # Allow sideloading of unsigned appx packages
     $keyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock"
@@ -155,13 +155,12 @@ function Enable-Sideload ()
         if ($null -ne ($Key.GetValue($propertyname, $null))) {return $true} else {return $false}
     }
     
-    $sideloadKeys | ForEach-Object
-    {
+    $sideloadKeys | %{
         if (!(Test-RegProperty $_)) {New-ItemProperty -Path $keyPath -Name $_ -Value "1" -PropertyType DWORD -Force | Out-Null}
         else {Set-ItemProperty -Path $keyPath -Name $_ -Value "1" -PropertyType DWORD -Force | Out-Null}
     }
 }
-function Select-Distro ()
+function Select-Distro
 {
     # See: https://docs.microsoft.com/en-us/windows/wsl/install-manual
     # You can also use https://store.rg-adguard.net to get Appx links from Windows Store links
@@ -254,7 +253,7 @@ function Select-Distro ()
         # }
     )
 
-    $distrolist | ForEach-Object { $_.installed = Get-WSLExistance($_) }
+    $distrolist | %{ $_.installed = Get-WSLExistance($_) }
 
     Write-Host("+------------------------------------------------+")
     Write-Host("| Choose your Distro                             |")
@@ -337,7 +336,7 @@ function Install-Distro ($distro)
         }
     }
 }
-function Process ()
+function Process
 {
     if ($rebootWSL -Or $rebootVMP)
     {
@@ -371,33 +370,30 @@ function Process ()
         else 
         {
             $wslselect = ""
-            Get-WSLlist | ForEach-Object { if ($_ -match $distro.Name) {$wslselect = $_} }
+            Get-WSLlist | %{ if ($_ -match $distro.Name) {$wslselect = $_} }
             if ($wslselect -ne "") {wsl -d $wslselect} 
             else { Write-Host("Run 'wsl --help' to display usage information.") }
         }
     }
 }
 
-function Main ()
+Main
 {
-    
     $steps = [ordered]@{
         'Set Execution Policy' = 'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted -Force';
-	'Check WSL' = 'Test-WSL';
-	'Check Virtual Machine Platform' = 'Test-VMP';
+	    'Check WSL' = 'Test-WSL';
+	    'Check Virtual Machine Platform' = 'Test-VMP';
         'Process' = 'Process'
     }
     
     $stepCounter = 0
 
-    $steps.Keys | ForEach-Object
-    {
+    $steps.Keys | %{
         Write-ProgressHelper -Message $($_) -StepNumber ($stepCounter++) -StepsNumber $steps.count
         Write-Host -ForegroundColor Yellow "`n$($_)"
         Start-Sleep -Seconds 1
         Invoke-Expression $($steps[$_])
     }
-
 }
 
 Main
