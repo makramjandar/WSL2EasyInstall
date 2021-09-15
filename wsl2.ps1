@@ -17,7 +17,7 @@ function Write-ProgressHelper
     param (
         [int]$StepNumber,
         [int]$StepsNumber,
-	    [string]$Message
+	[string]$Message
     )
     Write-Progress -Activity 'Installing WSL2' -Status $Message -PercentComplete (($StepNumber / $StepsNumber) * 100)
 }
@@ -25,7 +25,7 @@ function Write-ProgressHelper
 
 function Resume
 {
-    path = $MyInvocation.MyCommand.Path
+    $path = $MyInvocation.MyCommand.Path
     set-location HKCU:\Software\Microsoft\Windows\CurrentVersion\RunOnce
     new-itemproperty . MyKey -propertytype String -value "Powershell $path"
 }
@@ -336,17 +336,17 @@ function Install-Distro ($distro)
         }
     }
 }
-function Process
+function InstallWSL
 {
     if ($rebootWSL -Or $rebootVMP)
     {
         shutdown /t 120 /r /c "Reboot required to finish installing WSL2"
+        Resume
         $cancelReboot = Read-Host 'Cancel reboot for now (you still need to reboot and rerun to finish installing WSL2) [y/N]'
         
         if ($cancelReboot.Length -ne 0)
         {
             if ($cancelReboot.Substring(0,1).ToLower() -eq 'y') {shutdown /a}
-            else {Resume}
         }
     } 
     else
@@ -377,13 +377,12 @@ function Process
     }
 }
 
-Main
+function Main
 {
     $steps = [ordered]@{
-        'Set Execution Policy' = 'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted -Force';
 	    'Check WSL' = 'Test-WSL';
 	    'Check Virtual Machine Platform' = 'Test-VMP';
-        'Process' = 'Process'
+        'Process' = 'InstallWSL'
     }
     
     $stepCounter = 0
