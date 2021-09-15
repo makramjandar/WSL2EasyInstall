@@ -9,13 +9,14 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Check out repo        
+        uses: actions/checkout@v2
       
       - name: Run PowerShell wsl script
-        if: github.event.action == 'script'
-        run: pwsh -command ".\$GITHUB_WORKSPACE\wsl2.ps1"
+      - run: |
+          ./wsl2.ps1
 
       - name: Test WSL version
         run: |
