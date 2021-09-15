@@ -393,16 +393,17 @@ function Main
     $steps = [ordered]@{
         'Set Execution Policy' = 'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted -Force';
         'Process' = 'Process'
-     }
+    }
     
     $stepCounter = 0
 
-    $steps.Keys | %{
+    $steps.Keys | %
+    {
         Write-ProgressHelper -Message $($_) -StepNumber ($stepCounter++) -StepsNumber $steps.count
         Write-Host -ForegroundColor Yellow "`n$($_)"
         Start-Sleep -Seconds 1
         Invoke-Expression $($steps[$_])
-     }
+    }
 
 }
 
