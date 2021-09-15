@@ -10,7 +10,7 @@
 .Parameter pkgs
     Define packages.
 .Example
-    iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JfKrM'))
+    iex ((New-Object System.Net.WebClient).DownloadString('https://git.io/JuAw5'))
 #>
 
 [CmdletBinding()]
