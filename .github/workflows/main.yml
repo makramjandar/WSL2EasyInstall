@@ -1,0 +1,22 @@
+name: Install WSL2
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Run PowerShell wsl script
+        if: github.event.action == 'script'
+        run: pwsh -command ".\$GITHUB_WORKSPACE\wsl2.ps1"
+
+      - name: Test WSL version
+        run: |
+          wsl -l -v
