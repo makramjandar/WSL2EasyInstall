@@ -383,8 +383,8 @@ function Main ()
     
     $steps = [ordered]@{
         'Set Execution Policy' = 'Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted -Force';
-	'Check WSL' = 'TestWSL';
-	'Check Virtual Machine Platform' = 'TestVMP';
+	'Check WSL' = 'Test-WSL';
+	'Check Virtual Machine Platform' = 'Test-VMP';
         'Process' = 'Process'
     }
     
