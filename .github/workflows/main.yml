@@ -13,11 +13,5 @@ jobs:
     steps:
       - name: Check out repo        
         uses: actions/checkout@v2
-      
-      - name: Run PowerShell wsl script
       - run: |
           ./wsl2.ps1
-
-      - name: Test WSL version
-      - run: |
-          wsl -l -v
