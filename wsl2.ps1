@@ -380,8 +380,8 @@ function InstallWSL
 function Main
 {
     $steps = [ordered]@{
-	    'Check WSL' = 'Test-WSL';
-	    'Check Virtual Machine Platform' = 'Test-VMP';
+	'Check WSL' = 'Test-WSL';
+	'Check Virtual Machine Platform' = 'Test-VMP';
         'Process' = 'InstallWSL'
     }
     
@@ -393,6 +393,7 @@ function Main
         Start-Sleep -Seconds 1
         Invoke-Expression $($steps[$_])
     }
+    wsl -l -v
 }
 
 Main
